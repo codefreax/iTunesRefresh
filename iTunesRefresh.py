@@ -147,5 +147,9 @@ def main():
             print idx_format % (idx + 1) + ' Adding %s' % repr(path)
             library.add(mactypes.File(path).hfspath, to=new_playlist)
 
+    return 0
+
+
 if __name__ == '__main__':
-    main()
+    err = main()
+    sys.exit(err)
