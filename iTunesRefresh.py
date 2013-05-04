@@ -60,8 +60,6 @@ def main():
     files_on_disk = walk_library(itunes_lib_path)
 
     print '%s files found' % len(files_on_disk)
-    if 0:
-        print '\t' + '\n\t'.join([repr(x) for x in files_on_disk])
 
     print 'Connecting to iTunes'
     itunes = appscript.app('itunes')
