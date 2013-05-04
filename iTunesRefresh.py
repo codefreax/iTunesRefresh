@@ -9,6 +9,30 @@ verbose = False
 
 new_playlist_name = 'Import %s' % datetime.datetime.now().strftime('%Y/%m/%d %H:%M')
 
+def walk_library(lib_path):
+    def is_bundle_path(path):
+        return path.endswith('.itlp') # iTunes LPs
+
+    def is_ignored_path(path):
+        return (   path.startswith(lib_path + '/' + 'Podcasts')
+                or path.startswith(lib_path + '/' + 'Tones')
+                or path.startswith(lib_path + '/' + 'Automatically Add to iTunes.localized'))
+
+    def is_ignored_file(file):
+        return file.startswith('.')
+
+    files_found = []
+    for walk_path, walk_dirs, walk_files in os.walk(lib_path, topdown=True):
+        if not is_ignored_path(walk_path):
+            files_found.extend([walk_path + os.sep + file for file in walk_files if not is_ignored_file(file)])
+
+            for idx, walk_dir in reversed(list(enumerate(walk_dirs))):
+                if is_bundle_path(walk_dir):
+                    # Do not walk bundles but treat them as a single object
+                    del walk_dirs[idx]
+                    files_found.append(walk_path + os.sep + walk_dir)
+    return files_found
+
 def get_track_data(track):
     track_data = {
             'artist'   : track.artist(),
@@ -21,31 +45,10 @@ def get_track_data(track):
             }
     return track_data
 
-def bundle_path(path):
-    return path.endswith('.itlp') # iTunes LPs
-
-def ignored_path(path):
-    return (   path.startswith(itunes_lib_path + '/' + 'Podcasts')
-            or path.startswith(itunes_lib_path + '/' + 'Tones')
-            or path.startswith(itunes_lib_path + '/' + 'Automatically Add to iTunes.localized'))
-
-def ignored_file(file):
-    return file.startswith('.')
-
 itunes_lib_path = os.environ['HOME'] + u'/Music/iTunes/iTunes Music'
 
 print 'Searching for music in %s' % repr(itunes_lib_path)
-
-files_on_disk = []
-for walk_path, walk_dirs, walk_files in os.walk(itunes_lib_path, topdown=True):
-    if not ignored_path(walk_path):
-        files_on_disk.extend([walk_path + os.sep + file for file in walk_files if not ignored_file(file)])
-
-        for idx, walk_dir in reversed(list(enumerate(walk_dirs))):
-            if bundle_path(walk_dir):
-                # Do not walk bundles but treat them as a single object
-                del walk_dirs[idx]
-                files_on_disk.append(walk_path + os.sep + walk_dir)
+files_on_disk = walk_library(itunes_lib_path)
 
 print '%s files found' % len(files_on_disk)
 if 0:
