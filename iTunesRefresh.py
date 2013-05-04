@@ -56,7 +56,7 @@ def main():
 
     itunes_lib_path = os.environ['HOME'] + u'/Music/iTunes/iTunes Music'
 
-    print 'Searching for music in %s' % repr(itunes_lib_path)
+    print 'Searching for music in %s' % itunes_lib_path
     files_on_disk = walk_library(itunes_lib_path)
 
     print '%s files found' % len(files_on_disk)
@@ -102,10 +102,10 @@ def main():
         path = track.location().path
         if path in files_to_add:
             if args.verbosity >= 3:
-                print idx_format % (idx + 1) + ' Found    %s' % repr(path)
+                print idx_format % (idx + 1) + ' Found %s' % path
             files_to_add.remove(path)
         else:
-            message = 'track with missing file %s' % repr(path)
+            message = 'track with missing file %s' % path
             if args.verbosity >= 1:
                 print idx_format % (idx + 1) + ' ' + message
             tracks_to_remove.append((track, message))
@@ -128,7 +128,7 @@ def main():
     print '%s new files to add' % len(files_to_add)
     idx_format = '%%%ss/%s' % (len(str(len(files_to_add))), str(len(files_to_add)))
     for idx, path in enumerate(files_to_add):
-        print idx_format % (idx + 1) + ' Add %s' % repr(path)
+        print idx_format % (idx + 1) + ' Add %s' % path
 
     if len(tracks_to_remove) or len(files_to_add):
         # Ask for permission
@@ -146,10 +146,10 @@ def main():
         idx_format = '%%%ss/%s' % (len(str(len(files_to_add))), str(len(files_to_add)))
         for idx, path in enumerate(files_to_add):
             if not new_playlist:
-                print 'Creating playlist %s' % repr(new_playlist_name)
+                print 'Creating playlist %s' % new_playlist_name
                 new_playlist = itunes.make(new=appscript.k.user_playlist, with_properties={appscript.k.name: new_playlist_name})
 
-            print idx_format % (idx + 1) + ' Adding %s' % repr(path)
+            print idx_format % (idx + 1) + ' Adding %s' % path
             library.add(mactypes.File(path).hfspath, to=new_playlist)
 
     return 0
