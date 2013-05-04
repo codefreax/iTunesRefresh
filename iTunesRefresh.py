@@ -83,10 +83,11 @@ def main():
     idx_format = '%%%ss/%s' % (len(str(tracklist_size)), tracklist_size)
 
     for idx, track in enumerate(library_tracks):
-        progress = 40 * (idx + 1) / tracklist_size
-        sys.stdout.write('\r[' + 40 * ' ' + ('] (%.1f %%)' % (100. * (idx + 1) / tracklist_size)))
-        sys.stdout.write('\r[' + progress * '*')
-        sys.stdout.flush()
+        if not args.verbosity:
+            progress = 40 * (idx + 1) / tracklist_size
+            sys.stdout.write('\r[' + 40 * ' ' + ('] (%.1f %%)' % (100. * (idx + 1) / tracklist_size)))
+            sys.stdout.write('\r[' + progress * '*')
+            sys.stdout.flush()
 
         if track.podcast():
             if args.verbosity >= 2:
