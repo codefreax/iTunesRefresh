@@ -21,15 +21,31 @@ def get_track_data(track):
             }
     return track_data
 
+def bundle_path(path):
+    return path.endswith('.itlp') # iTunes LPs
+
+def ignored_path(path):
+    return (   path.startswith(itunes_lib_path + '/' + 'Podcasts')
+            or path.startswith(itunes_lib_path + '/' + 'Tones')
+            or path.startswith(itunes_lib_path + '/' + 'Automatically Add to iTunes.localized'))
+
+def ignored_file(file):
+    return file.startswith('.')
 
 itunes_lib_path = os.environ['HOME'] + u'/Music/iTunes/iTunes Music'
 
 print 'Searching for music in %s' % repr(itunes_lib_path)
 
 files_on_disk = []
-for walk_path, walk_dirs, walk_files in os.walk(itunes_lib_path):
-    if not walk_path.startswith(itunes_lib_path + '/' + 'Podcasts'):
-        files_on_disk.extend([walk_path + '/' + file for file in walk_files if not file.startswith('.')])
+for walk_path, walk_dirs, walk_files in os.walk(itunes_lib_path, topdown=True):
+    if not ignored_path(walk_path):
+        files_on_disk.extend([walk_path + os.sep + file for file in walk_files if not ignored_file(file)])
+
+        for idx, walk_dir in reversed(list(enumerate(walk_dirs))):
+            if bundle_path(walk_dir):
+                # Do not walk bundles but treat them as a single object
+                del walk_dirs[idx]
+                files_on_disk.append(walk_path + os.sep + walk_dir)
 
 print '%s files found' % len(files_on_disk)
 if 0:
