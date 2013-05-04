@@ -88,8 +88,8 @@ def main():
             continue
 
         if track.location() == appscript.k.missing_value:
+            message = 'item with unknown location %s' % ', '.join(['%s=%s' % (k, repr(v)) for k, v in get_track_data(track).iteritems()])
             if args.verbosity >= 1:
-                message = 'item with unknown location %s' % ', '.join(['%s=%s' % (k, repr(v)) for k, v in get_track_data(track).iteritems()])
                 print idx_format % (idx + 1) + ' ' + message
             tracks_to_remove.append((track, message))
             continue
@@ -100,8 +100,8 @@ def main():
                 print idx_format % (idx + 1) + ' Found    %s' % repr(path)
             files_to_add.remove(path)
         else:
+            message = 'track with missing file %s' % repr(path)
             if args.verbosity >= 1:
-                message = 'track with missing file %s' % repr(path)
                 print idx_format % (idx + 1) + ' ' + message
             tracks_to_remove.append((track, message))
 
