@@ -79,9 +79,15 @@ def main():
     tracks_to_remove = []
     files_to_add = list(files_on_disk)
 
-    idx_format = '%%%ss/%s' % (len(str(len(library_tracks))), len(library_tracks))
+    tracklist_size = len(library_tracks)
+    idx_format = '%%%ss/%s' % (len(str(tracklist_size)), tracklist_size)
 
     for idx, track in enumerate(library_tracks):
+        progress = 40 * (idx + 1) / tracklist_size
+        sys.stdout.write('\r[' + 40 * ' ' + ('] (%.1f %%)' % (100. * (idx + 1) / tracklist_size)))
+        sys.stdout.write('\r[' + progress * '*')
+        sys.stdout.flush()
+
         if track.podcast():
             if args.verbosity >= 2:
                 print idx_format % (idx + 1) + ' Skipping podcast %s' % ', '.join(['%s=%s' % (k, repr(v)) for k, v in get_track_data(track).iteritems()])
