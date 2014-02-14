@@ -83,8 +83,9 @@ def main():
 
     for idx, track in enumerate(library_tracks):
         if not args.verbosity:
-            progress = 40 * (idx + 1) / tracklist_size
-            sys.stdout.write('\r[' + 40 * ' ' + ('] (%.1f %%)' % (100. * (idx + 1) / tracklist_size)))
+            progress_len = 70
+            progress = progress_len * (idx + 1) / tracklist_size
+            sys.stdout.write('\r[' + progress_len * ' ' + ('] (%.1f %%)' % (100. * (idx + 1) / tracklist_size)))
             sys.stdout.write('\r[' + progress * '*')
             sys.stdout.flush()
 
