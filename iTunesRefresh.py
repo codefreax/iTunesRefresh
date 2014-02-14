@@ -18,8 +18,8 @@ def walk_library(lib_path):
         return path.endswith('.itlp') # iTunes LPs
 
     def is_ignored_path(path):
-        return (   path.startswith(lib_path + '/' + 'Podcasts')
-                or path.startswith(lib_path + '/' + 'Tones')
+        return (   path.startswith(lib_path + '/' + 'Podcasts/')
+                or path.startswith(lib_path + '/' + 'Tones/')
                 or path.startswith(lib_path + '/' + 'Automatically Add to iTunes.localized'))
 
     def is_ignored_file(file):
