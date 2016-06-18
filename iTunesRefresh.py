@@ -39,7 +39,7 @@ def walk_library(lib_path):
         return res
 
     def is_ignored_file(fn):
-        return fn.startswith('.')
+        return fn.startswith(".")
 
     files_found = []
     for walk_path, walk_dirs, walk_files in os.walk(lib_path, topdown=True):
@@ -80,7 +80,7 @@ def main():
 
     library = itunes.library_playlists()[0]
     library_tracks = library.file_tracks()
-    print("Playlist %r contains %s files of %s MB. This is %s of music." % (
+    print("Playlist \"%s\" contains %s files of %s MB. This is %s of music." % (
           library.name(), len(library_tracks), library.size() / 1024 / 1024, library.time()
           ))
 
@@ -126,7 +126,7 @@ def main():
     files_to_add = list(files_on_disk)
 
     tracklist_size = len(library_tracks)
-    idx_format = '%%%ss/%s' % (len(str(tracklist_size)), tracklist_size)
+    idx_format = "%%%ss/%s" % (len(str(tracklist_size)), tracklist_size)
 
     for idx, track in enumerate(library_tracks):
         if not args.verbosity:
@@ -137,21 +137,21 @@ def main():
             sys.stdout.flush()
 
         if track.location() == appscript.k.missing_value:
-            message = 'item with unknown location %s' % ', '.join(['%s=%s' % (k, repr(v)) for k, v in get_track_data(track).iteritems()])
+            message = "item with unknown location %s" % ", ".join(["%s=%s" % (k, repr(v)) for k, v in get_track_data(track).iteritems()])
             if args.verbosity >= 1:
-                print(idx_format % (idx + 1) + ' ' + message)
+                print(idx_format % (idx + 1) + " " + message)
             tracks_to_remove.append((track, message))
             continue
 
         path = track.location().path
         if path in files_to_add:
             if args.verbosity >= 3:
-                print(idx_format % (idx + 1) + ' Found %s' % path)
+                print(idx_format % (idx + 1) + " Found %s" % path)
             files_to_add.remove(path)
         else:
-            message = 'track with missing file %s' % path
+            message = "track with missing file %s" % path
             if args.verbosity >= 1:
-                print(idx_format % (idx + 1) + ' ' + message)
+                print(idx_format % (idx + 1) + " " + message)
             tracks_to_remove.append((track, message))
 
     # Get list of playlists
@@ -165,13 +165,13 @@ def main():
     print()
 
     # Print task list for approval
-    print('%s tracks to remove' % len(tracks_to_remove))
-    idx_format = '%%%ss/%s' % (len(str(len(tracks_to_remove))), str(len(tracks_to_remove)))
+    print("%s tracks to remove" % len(tracks_to_remove))
+    idx_format = "%%%ss/%s" % (len(str(len(tracks_to_remove))), str(len(tracks_to_remove)))
     for idx, (track, message) in enumerate(tracks_to_remove):
-        print(idx_format % (idx + 1) + ' Remove ' + message)
+        print(idx_format % (idx + 1) + " Remove " + message)
 
-    print('%s new files to add' % len(files_to_add))
-    idx_format = '%%%ss/%s' % (len(str(len(files_to_add))), str(len(files_to_add)))
+    print("%s new files to add" % len(files_to_add))
+    idx_format = "%%%ss/%s" % (len(str(len(files_to_add))), str(len(files_to_add)))
     for idx, path in enumerate(files_to_add):
         print(idx_format % (idx + 1) + " Add %s" % path)
 
