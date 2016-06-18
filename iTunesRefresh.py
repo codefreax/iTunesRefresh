@@ -10,9 +10,11 @@ import sys
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Refresh iTunes database after library changes on disk.')
-    parser.add_argument('-v', dest='verbosity', action='count', default=0,
-                        help='verbosity level (default: %(default)s)')
+    parser = argparse.ArgumentParser(description="Refresh iTunes database after library changes on disk.")
+    parser.add_argument("-l", "--library", default=None,
+                        help="path to iTunes library (default: guess)")
+    parser.add_argument("-v", dest="verbosity", action="count", default=0,
+                        help="increase verbosity")
     args = parser.parse_args()
     return args
 
@@ -67,14 +69,7 @@ def get_track_data(track):
 def main():
     args = parse_args()
 
-    new_playlist_name = "Import %s" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M")
-
-    itunes_lib_path = os.environ['HOME'] + u"/Music/iTunes/iTunes Music"
-
-    print("Searching for music in %s" % itunes_lib_path)
-    files_on_disk = walk_library(itunes_lib_path)
-
-    print("%s files found" % len(files_on_disk))
+    itunes_lib_path = args.library
 
     print("Connecting to iTunes")
     itunes = appscript.app('itunes')
@@ -84,6 +79,40 @@ def main():
     print("Playlist %r contains %s files of %s MB. This is %s of music." % (
           library.name(), len(library_tracks), library.size() / 1024 / 1024, library.time()
           ))
+
+    #print("Searching for iTunes library")
+    #if len(library_tracks):
+    #    file_paths = [t.location().path for t in library_tracks]
+    #    prefix = file_paths[0]
+    #    while True:
+    #        prefix = os.path.dirname(prefix)
+    #        if prefix == "/":
+    #            break
+    #        count_with_prefix = reduce(lambda c, t: c + (1 if t.startswith(prefix) else 0), file_paths, 0)
+    #        if count_with_prefix == len(file_paths):
+    #            # Found common prefix
+    #            itunes_lib_path = prefix
+    #            break
+
+    if not itunes_lib_path:
+        # Guess library path
+        candidates = (
+            os.environ['HOME'] + u"/Music/iTunes/iTunes Media",
+            os.environ['HOME'] + u"/Music/iTunes/iTunes Music",
+        )
+        for path in candidates:
+            if os.path.exists(path):
+                itunes_lib_path = path
+                break
+
+    if not itunes_lib_path:
+        print("iTunes library not found")
+        return 3
+
+    print("Searching for music in %s" % itunes_lib_path)
+    files_on_disk = walk_library(itunes_lib_path)
+
+    print("%s files found" % len(files_on_disk))
 
     print()
 
@@ -123,6 +152,7 @@ def main():
 
     # Get list of playlists
     user_playlists = dict([(plist.name(), plist) for plist in itunes.user_playlists()])
+    new_playlist_name = "Import %s" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M")
     try:
         new_playlist = user_playlists[new_playlist_name]
     except KeyError:
