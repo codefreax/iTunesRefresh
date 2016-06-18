@@ -23,7 +23,9 @@ def parse_args():
 
 def walk_library(lib_path):
     def is_bundle_path(path):
-        return path.endswith('.itlp')  # iTunes LPs
+        res = path.endswith(".itlp")  # iTunes LPs
+        res |= path.endswith(".ite")  # iTunes extras
+        return res
 
     def is_ignored_dir(path):
         ignored_dirs = (
