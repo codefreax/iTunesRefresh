@@ -13,6 +13,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Refresh iTunes database after library changes on disk.")
     parser.add_argument("-l", "--library", default=None,
                         help="path to iTunes library (default: guess)")
+    parser.add_argument("-n", "--dryrun", action="store_true",
+                        help="do not apply any changes")
     parser.add_argument("-v", dest="verbosity", action="count", default=0,
                         help="increase verbosity")
     args = parser.parse_args()
@@ -169,29 +171,34 @@ def main():
     print('%s new files to add' % len(files_to_add))
     idx_format = '%%%ss/%s' % (len(str(len(files_to_add))), str(len(files_to_add)))
     for idx, path in enumerate(files_to_add):
-        print(idx_format % (idx + 1) + ' Add %s' % path)
+        print(idx_format % (idx + 1) + " Add %s" % path)
 
-    if len(tracks_to_remove) or len(files_to_add):
-        # Ask for permission
-        print('Press Enter to continue or Ctrl-C to quit.')
-        sys.stdin.readline()
+    if args.dryrun:
+        return 0
 
-        # Run tasks
-        print('Removing %s tracks' % len(tracks_to_remove))
-        idx_format = '%%%ss/%s' % (len(str(len(tracks_to_remove))), str(len(tracks_to_remove)))
-        for idx, (track, message) in enumerate(tracks_to_remove):
-            print(idx_format % (idx + 1) + ' Removing ' + message)
-            library.delete(track)
+    if not len(tracks_to_remove) and not len(files_to_add):
+        return 0
 
-        print('Adding %s new files' % len(files_to_add))
-        idx_format = '%%%ss/%s' % (len(str(len(files_to_add))), str(len(files_to_add)))
-        for idx, path in enumerate(files_to_add):
-            if not new_playlist:
-                print('Creating playlist %s' % new_playlist_name)
-                new_playlist = itunes.make(new=appscript.k.user_playlist, with_properties={appscript.k.name: new_playlist_name})
+    # Ask for permission
+    print("Press Enter to continue or Ctrl-C to quit.")
+    sys.stdin.readline()
 
-            print(idx_format % (idx + 1) + ' Adding %s' % path)
-            library.add(mactypes.File(path).hfspath, to=new_playlist)
+    # Run tasks
+    print("Removing %s tracks" % len(tracks_to_remove))
+    idx_format = "%%%ss/%s" % (len(str(len(tracks_to_remove))), str(len(tracks_to_remove)))
+    for idx, (track, message) in enumerate(tracks_to_remove):
+        print(idx_format % (idx + 1) + " Removing " + message)
+        library.delete(track)
+
+    print("Adding %s new files" % len(files_to_add))
+    idx_format = "%%%ss/%s" % (len(str(len(files_to_add))), str(len(files_to_add)))
+    for idx, path in enumerate(files_to_add):
+        if not new_playlist:
+            print("Creating playlist %s" % new_playlist_name)
+            new_playlist = itunes.make(new=appscript.k.user_playlist, with_properties={appscript.k.name: new_playlist_name})
+
+        print(idx_format % (idx + 1) + " Adding %s" % path)
+        library.add(mactypes.File(path).hfspath, to=new_playlist)
 
     return 0
 
