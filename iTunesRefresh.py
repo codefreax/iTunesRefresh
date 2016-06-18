@@ -21,26 +21,33 @@ def walk_library(lib_path):
     def is_bundle_path(path):
         return path.endswith('.itlp')  # iTunes LPs
 
-    def is_ignored_path(path):
-        res = (path.startswith(lib_path + '/' + 'Movies/') or
-               path.startswith(lib_path + '/' + 'Podcasts/') or
-               path.startswith(lib_path + '/' + 'Tones/') or
-               path.startswith(lib_path + '/' + 'Automatically Add to iTunes.localized'))
+    def is_ignored_dir(path):
+        ignored_dirs = (
+            os.path.join(lib_path, "Mobile Applications"),
+            os.path.join(lib_path, "Podcasts"),
+            os.path.join(lib_path, "Tones"),
+            os.path.join(lib_path, "Automatically Add to iTunes.localized"),
+            os.path.join(lib_path, "Automatically Add to iTunes.localized", ".localized"),
+        )
+        res = path in ignored_dirs
         return res
 
-    def is_ignored_file(file):
-        return file.startswith('.')
+    def is_ignored_file(fn):
+        return fn.startswith('.')
 
     files_found = []
     for walk_path, walk_dirs, walk_files in os.walk(lib_path, topdown=True):
-        if not is_ignored_path(walk_path):
-            files_found.extend([walk_path + os.sep + file for file in walk_files if not is_ignored_file(file)])
+        if is_ignored_dir(walk_path):
+            continue
 
-            for idx, walk_dir in reversed(list(enumerate(walk_dirs))):
-                if is_bundle_path(walk_dir):
-                    # Do not walk bundles but treat them as a single object
-                    del walk_dirs[idx]
-                    files_found.append(walk_path + os.sep + walk_dir)
+        files_found.extend([walk_path + os.sep + fn for fn in walk_files if not is_ignored_file(fn)])
+
+        for idx, walk_dir in reversed(list(enumerate(walk_dirs))):
+            if is_bundle_path(walk_dir):
+                # Do not walk bundles but treat them as a single object
+                del walk_dirs[idx]
+                files_found.append(walk_path + os.sep + walk_dir)
+
     return files_found
 
 
@@ -60,27 +67,27 @@ def get_track_data(track):
 def main():
     args = parse_args()
 
-    new_playlist_name = 'Import %s' % datetime.datetime.now().strftime('%Y/%m/%d %H:%M')
+    new_playlist_name = "Import %s" % datetime.datetime.now().strftime("%Y/%m/%d %H:%M")
 
-    itunes_lib_path = os.environ['HOME'] + u'/Music/iTunes/iTunes Music'
+    itunes_lib_path = os.environ['HOME'] + u"/Music/iTunes/iTunes Music"
 
-    print('Searching for music in %s' % itunes_lib_path)
+    print("Searching for music in %s" % itunes_lib_path)
     files_on_disk = walk_library(itunes_lib_path)
 
-    print('%s files found' % len(files_on_disk))
+    print("%s files found" % len(files_on_disk))
 
-    print('Connecting to iTunes')
+    print("Connecting to iTunes")
     itunes = appscript.app('itunes')
 
     library = itunes.library_playlists()[0]
     library_tracks = library.file_tracks()
-    print('Playlist "%s" contains %s files of %s MB. This is %s of music.' % (
+    print("Playlist %r contains %s files of %s MB. This is %s of music." % (
           library.name(), len(library_tracks), library.size() / 1024 / 1024, library.time()
           ))
 
     print()
 
-    print('Checking iTunes track list')
+    print("Checking iTunes track list")
 
     tracks_to_remove = []
     files_to_add = list(files_on_disk)
@@ -92,14 +99,9 @@ def main():
         if not args.verbosity:
             progress_len = 70
             progress = progress_len * (idx + 1) / tracklist_size
-            sys.stdout.write('\r[' + progress_len * ' ' + ('] (%.1f %%)' % (100. * (idx + 1) / tracklist_size)))
-            sys.stdout.write('\r[' + progress * '*')
+            sys.stdout.write("\r[" + progress_len * " " + ("] %5.1f %%" % (100. * (idx + 1) / tracklist_size)))
+            sys.stdout.write("\r[" + progress * "*")
             sys.stdout.flush()
-
-        if track.podcast():
-            if args.verbosity >= 2:
-                print(idx_format % (idx + 1) + ' Skipping podcast %s' % ', '.join(['%s=%s' % (k, repr(v)) for k, v in get_track_data(track).iteritems()]))
-            continue
 
         if track.location() == appscript.k.missing_value:
             message = 'item with unknown location %s' % ', '.join(['%s=%s' % (k, repr(v)) for k, v in get_track_data(track).iteritems()])
